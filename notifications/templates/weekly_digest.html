@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Weekly City Events Digest</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+           background: #f4f4f5; color: #18181b; line-height: 1.6; }
+    .wrapper { max-width: 640px; margin: 32px auto; background: #fff;
+               border-radius: 12px; overflow: hidden;
+               box-shadow: 0 4px 24px rgba(0,0,0,.08); }
+    /* Header */
+    .header { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+              padding: 40px 32px; text-align: center; color: #fff; }
+    .header h1 { font-size: 26px; font-weight: 700; letter-spacing: -.5px; }
+    .header p  { margin-top: 6px; opacity: .85; font-size: 14px; }
+    /* Body */
+    .content { padding: 32px; }
+    .intro { font-size: 15px; color: #52525b; margin-bottom: 28px; }
+    /* Event card */
+    .event-card { border: 1px solid #e4e4e7; border-radius: 10px;
+                  overflow: hidden; margin-bottom: 20px; }
+    .event-banner { width: 100%; height: 160px; object-fit: cover;
+                    background: #e4e4e7; display: block; }
+    .event-body { padding: 18px 20px; }
+    .event-meta { display: flex; gap: 10px; align-items: center;
+                  flex-wrap: wrap; margin-bottom: 8px; }
+    .badge { background: #f4f4f5; color: #52525b; border-radius: 20px;
+             font-size: 12px; font-weight: 500; padding: 3px 10px; }
+    .badge-price { background: #ecfdf5; color: #059669; }
+    .event-title { font-size: 18px; font-weight: 600; color: #09090b;
+                   margin-bottom: 6px; }
+    .event-desc  { font-size: 14px; color: #71717a; margin-bottom: 14px;
+                   display: -webkit-box; -webkit-line-clamp: 3;
+                   -webkit-box-orient: vertical; overflow: hidden; }
+    .event-venue { font-size: 13px; color: #a1a1aa; margin-bottom: 14px; }
+    .event-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn { display: inline-block; padding: 9px 18px; border-radius: 7px;
+           font-size: 14px; font-weight: 500; text-decoration: none;
+           cursor: pointer; }
+    .btn-primary { background: #6366f1; color: #fff; }
+    .btn-like    { background: #ecfdf5; color: #059669; }
+    .btn-dislike { background: #fef2f2; color: #dc2626; }
+    /* Footer */
+    .footer { padding: 24px 32px; background: #fafafa;
+              border-top: 1px solid #e4e4e7; text-align: center;
+              font-size: 12px; color: #a1a1aa; }
+    .footer a { color: #6366f1; text-decoration: none; }
+    .ml-note { background: #eff6ff; border-left: 3px solid #3b82f6;
+               border-radius: 4px; padding: 12px 16px; margin-bottom: 28px;
+               font-size: 13px; color: #1d4ed8; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <!-- Header -->
+  <div class="header">
+    <h1>Your Weekly City Events</h1>
+    <p>{{ city }} &bull; Week of {{ week_label }}</p>
+  </div>
+
+  <div class="content">
+    <p class="intro">
+      Hi there! Here are <strong>{{ events|length }} events</strong> hand-picked
+      for you in <strong>{{ city }}</strong> over the next two weeks.
+      Click <em>Like</em> or <em>Dislike</em> on any event — our ML engine uses
+      your feedback to make next week's digest even better.
+    </p>
+
+    {% if is_personalised %}
+    <div class="ml-note">
+      ✨ <strong>Personalised for you</strong> — recommendations are based on
+      your interaction history. Keep rating events to improve accuracy!
+    </div>
+    {% else %}
+    <div class="ml-note">
+      🚀 <strong>Getting started</strong> — this is your first digest!
+      Rate events below so the ML model can learn your taste.
+    </div>
+    {% endif %}
+
+    <!-- Event Cards -->
+    {% for event in events %}
+    <div class="event-card">
+      {% if event.image_url %}
+      <img class="event-banner" src="{{ event.image_url }}" alt="{{ event.title }}">
+      {% endif %}
+      <div class="event-body">
+        <div class="event-meta">
+          {% if event.category %}
+          <span class="badge">{{ event.category }}</span>
+          {% endif %}
+          <span class="badge">{{ event.start_dt | format_date }}</span>
+          {% if event.price_min is not none %}
+          <span class="badge badge-price">
+            {% if event.price_min == 0 %}Free{% else %}From ${{ "%.0f"|format(event.price_min) }}{% endif %}
+          </span>
+          {% endif %}
+        </div>
+        <div class="event-title">{{ event.title }}</div>
+        {% if event.description %}
+        <div class="event-desc">{{ event.description }}</div>
+        {% endif %}
+        {% if event.venue %}
+        <div class="event-venue">📍 {{ event.venue }}</div>
+        {% endif %}
+        <div class="event-actions">
+          <a class="btn btn-primary" href="{{ feedback_base }}/track/click/{{ user_id }}/{{ event.id }}?redirect={{ event.url | urlencode }}">
+            View Event →
+          </a>
+          <a class="btn btn-like" href="{{ feedback_base }}/feedback/{{ user_id }}/{{ event.id }}/like">
+            👍 Like
+          </a>
+          <a class="btn btn-dislike" href="{{ feedback_base }}/feedback/{{ user_id }}/{{ event.id }}/dislike">
+            👎 Dislike
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="footer">
+    <p>
+      You're receiving this because you subscribed to the City Events Digest.<br>
+      <a href="{{ feedback_base }}/unsubscribe/{{ user_id }}">Unsubscribe</a>
+      &bull;
+      <a href="{{ feedback_base }}/preferences/{{ user_id }}">Update preferences</a>
+    </p>
+    <p style="margin-top:8px;">Powered by ML &bull; Getting smarter every week</p>
+  </div>
+</div>
+</body>
+</html>
