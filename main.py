@@ -19,6 +19,10 @@ Usage
 # Retrain ML models for all users:
     python main.py retrain
 
+# Launch the MLflow tracking UI:
+    python main.py mlflow-ui            # default port 5001
+    python main.py mlflow-ui --port 4000
+
 # Show next scheduled runs:
     python main.py status
 """
@@ -117,6 +121,18 @@ def cmd_retrain(args):
     print(f"Done – retrained {len(users)} models.")
 
 
+def cmd_mlflow_ui(args):
+    """Launch the MLflow tracking UI."""
+    import subprocess
+    port = args.port
+    uri = config.MLFLOW_TRACKING_URI
+    print(f"Starting MLflow UI at http://localhost:{port}  (tracking URI: {uri})")
+    subprocess.run(
+        ["mlflow", "ui", "--backend-store-uri", uri, "--port", str(port)],
+        check=True,
+    )
+
+
 def cmd_status(args):
     """Print a summary of the current system state."""
     db.init_db()
@@ -136,6 +152,8 @@ def cmd_status(args):
     print(f"  SMTP:          {'configured' if config.SMTP_USER else 'NOT configured (dev mode)'}")
     print(f"  Ticketmaster:  {'configured' if config.TICKETMASTER_API_KEY else 'NOT configured'}")
     print(f"  Eventbrite:    {'configured' if config.EVENTBRITE_TOKEN else 'NOT configured'}")
+    print(f"  MLflow URI:    {config.MLFLOW_TRACKING_URI}")
+    print(f"  MLflow expt:   {config.MLFLOW_EXPERIMENT}")
 
 
 # ---------------------------------------------------------------------------
@@ -169,6 +187,10 @@ def build_parser() -> argparse.ArgumentParser:
     # retrain
     sub.add_parser("retrain", help="Retrain ML models")
 
+    # mlflow-ui
+    p_mlflow = sub.add_parser("mlflow-ui", help="Launch MLflow tracking UI")
+    p_mlflow.add_argument("--port", type=int, default=5001)
+
     # status
     sub.add_parser("status", help="Show system status")
 
@@ -184,6 +206,7 @@ def main():
         "add-user": cmd_add_user,
         "fetch-events": cmd_fetch_events,
         "retrain": cmd_retrain,
+        "mlflow-ui": cmd_mlflow_ui,
         "status": cmd_status,
     }
     commands[args.command](args)

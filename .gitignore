@@ -2,6 +2,7 @@
 *.db
 *.db-wal
 *.db-shm
+mlruns/
 __pycache__/
 *.pyc
 *.pyo

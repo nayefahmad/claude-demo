@@ -24,6 +24,10 @@ EVENTBRITE_TOKEN = os.getenv("EVENTBRITE_TOKEN", "")
 # Claude API
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 
+# MLflow
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "sqlite:///mlflow.db")
+MLFLOW_EXPERIMENT = os.getenv("MLFLOW_EXPERIMENT", "city-events-recommender")
+
 # App
 DB_PATH = os.getenv("DB_PATH", "city_events.db")
 FEEDBACK_BASE_URL = os.getenv("FEEDBACK_BASE_URL", "http://localhost:5000")
